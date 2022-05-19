@@ -80,6 +80,11 @@ geometricCtrl::geometricCtrl(const ros::NodeHandle &nh, const ros::NodeHandle &n
   set_mode_client_ = nh_.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
   land_service_ = nh_.advertiseService("land", &geometricCtrl::landCallback, this);
 
+  // #######################################################
+  controller_activation_sub_ = nh_.subscribe("geometric_controller/start_trigger", 10, &geometricCtrl::startTriggerCallback, this);
+  start_trigger_ = false;
+  // #######################################################
+
   nh_private_.param<string>("mavname", mav_name_, "iris");
   nh_private_.param<int>("ctrl_mode", ctrl_mode_, ERROR_QUATERNION);
   nh_private_.param<bool>("enable_sim", sim_enable_, true);
@@ -227,7 +232,10 @@ void geometricCtrl::cmdloopCallback(const ros::TimerEvent &event) {
     case WAITING_FOR_HOME_POSE:
       waitForPredicate(&received_home_pose, "Waiting for home pose...");
       ROS_INFO("Got pose! Drone Ready to be armed.");
-      node_state = MISSION_EXECUTION;
+      if(start_trigger_)
+      {
+        node_state = MISSION_EXECUTION;
+      }
       break;
 
     case MISSION_EXECUTION: {
@@ -553,3 +561,12 @@ void geometricCtrl::dynamicReconfigureCallback(geometric_controller::GeometricCo
   Kpos_ << -Kpos_x_, -Kpos_y_, -Kpos_z_;
   Kvel_ << -Kvel_x_, -Kvel_y_, -Kvel_z_;
 }
+
+// #######################################################
+
+void geometricCtrl::startTriggerCallback(const std_msgs::Bool &msg)
+{
+  start_trigger_ = msg.data;
+}  
+  
+// #######################################################

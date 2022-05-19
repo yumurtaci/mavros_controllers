@@ -63,6 +63,11 @@
 #include <std_msgs/Float32.h>
 #include <Eigen/Dense>
 
+//############################
+#include <std_msgs/Bool.h>    
+
+//############################
+
 #include <controller_msgs/FlatTarget.h>
 #include <dynamic_reconfigure/server.h>
 #include <geometric_controller/GeometricControllerConfig.h>
@@ -124,6 +129,12 @@ class geometricCtrl {
   double norm_thrust_const_, norm_thrust_offset_;
   double max_fb_acc_;
   double dx_, dy_, dz_;
+  
+  // #######################################################
+  ros::Subscriber controller_activation_sub_;
+  bool start_trigger_; 
+  void startTriggerCallback(const std_msgs::Bool &msg);
+  // #######################################################
 
   mavros_msgs::State current_state_;
   mavros_msgs::SetMode offb_set_mode_;
